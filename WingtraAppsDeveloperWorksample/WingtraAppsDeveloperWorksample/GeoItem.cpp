@@ -1,5 +1,5 @@
-#include <QLineF>
-#include <QPolygonF>
+#include <QGeoPolygon>
+#include <QGeoPath>
 
 #include "GeoItem.h"
 
@@ -66,7 +66,7 @@ std::optional<GeoItem> GeoItem::parseGeoItem(const QByteArray &line)
     return item;
 }
 
-QString GeoItem::pointsToString() const
+QString GeoItem::_pointsToString() const
 {
     QStringList pointTexts;
 
@@ -78,20 +78,35 @@ QString GeoItem::pointsToString() const
     return QString("[%1]").arg(pointTexts.join(", "));
 }
 
-QVariant GeoItem::createGeometry() const
+QList<QGeoCoordinate> GeoItem::_getCoordinateList() const
+{
+    auto list = QList<QGeoCoordinate>();
+
+    for(const auto & point : _points)
+    {
+        list.push_back(QGeoCoordinate(point.x(), point.y()));
+    }
+
+    return list;
+}
+
+QGeoCoordinate GeoItem::_getCenter() const
 {
     if (_type == TYPE_POINT)
     {
-        return QVariant(_points[0]);
+        return QGeoCoordinate(_points[0].x(), _points[0].y());
     }
     else if (_type == TYPE_LINE && _points.count() == 2)
     {
-        return QVariant(QLineF(_points[0], _points[1]));
+        auto geoLine = QGeoPath(_getCoordinateList());
+        return geoLine.center();
     }
     else if (_type == TYPE_POLYGON && _points.count() > 2)
     {
-        return QVariant(QPolygonF(_points));
+        auto geoPolygon = QGeoPolygon(_getCoordinateList());
+        return geoPolygon.center();
     }
 
-    return QVariant();
+    return QGeoCoordinate();
 }
+

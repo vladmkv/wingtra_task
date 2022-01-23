@@ -1,4 +1,4 @@
-QT += quick
+QT += quick positioning
 
 CONFIG += c++17
 

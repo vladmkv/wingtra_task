@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QAbstractTableModel>
-#include <QColor>
+#include <QVector>
+#include <QGeoCoordinate>
 
 #include <optional>
 
@@ -18,9 +18,17 @@ public:
     static inline bool typeLessThan(const GeoItem &item1, const GeoItem &item2)
     {
         // line, polygon, then point
-        static QList<QString> _typeOrder = {TYPE_LINE, TYPE_POLYGON, TYPE_POINT};
+        static QList<QString> typeOrder = {TYPE_LINE, TYPE_POLYGON, TYPE_POINT};
 
-        return _typeOrder.indexOf(item1._type) < _typeOrder.indexOf(item2._type);
+        return typeOrder.indexOf(item1._type) < typeOrder.indexOf(item2._type);
+    }
+
+    static inline bool distanceLessThan(const GeoItem &item1, const GeoItem &item2)
+    {
+        // Sort by distance from item center to Zurich (8.5392, 47.3686)
+        static QGeoCoordinate zurichCoordinate = QGeoCoordinate(8.5392, 47.3686);
+
+        return item1._distanceTo(zurichCoordinate) < item2._distanceTo(zurichCoordinate);
     }
 
 public:
@@ -41,10 +49,8 @@ public:
 
     inline operator QString () const
     {
-        return QString("%1, %2, %3, %4").arg(_name, _type, _color, pointsToString());
+        return QString("%1, %2, %3, %4").arg(_name, _type, _color, _pointsToString());
     }
-
-    QVariant createGeometry() const;
 
 private:
     constexpr static const int COLUMNS = 4;
@@ -58,14 +64,19 @@ private:
 private:
     static QPointF _parsePoint(const QString &string);
     static QVector<QPointF> _parsePoints(const QString &string);
+    QList<QGeoCoordinate> _getCoordinateList() const;
+    QGeoCoordinate _getCenter() const;
+    QString _pointsToString() const;
 
-    QString pointsToString() const;
+    inline double _distanceTo(const QGeoCoordinate &location) const
+    {
+        return location.distanceTo(_getCenter());
+    }
 
 private:
     QString _name;
     QString _type;
     QString _color;
-    QVariant _geometry;
     QVector<QPointF> _points;
 };
 
