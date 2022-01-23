@@ -4,7 +4,7 @@
 #include <QObject>
 #include <optional>
 
-#include "GeoDataModel.h"
+#include "GeoItem.h"
 
 class GeoFeatureParser : public QObject
 {
@@ -30,13 +30,6 @@ signals:
     void geoFeaturesChanged();
 
 private:
-    constexpr static const int COLUMNS = 4;
-    constexpr static const char TYPE_POINT[] = "point";
-    constexpr static const char TYPE_LINE[] = "line";
-    constexpr static const char TYPE_POLYGON[] = "polygon";
-    constexpr static const char COORDINATE_DELIMITER = ',';
-    constexpr static const char POINT_DELIMITER = ' ';
-
     void _parseGeoFeatureCSVFile();
     void _printGeoFeatures();
 
