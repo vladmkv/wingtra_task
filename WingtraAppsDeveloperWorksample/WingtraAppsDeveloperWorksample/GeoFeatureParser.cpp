@@ -131,10 +131,8 @@ void GeoFeatureParser::sortByLocation()
     // e.g. "TestLine1, Line, red, 10.34 km, [(48.5677, 8.5678), (48.5678, 8.5668)]
     // in the correct order, i.e. sorted by location
 
-    auto zurichLocation = QGeoCoordinate(8.5392, 47.3686);
-
     std::sort(_items.begin(), _items.end(), GeoItem::distanceLessThan);
-    _updateGeoFeatures(zurichLocation);
+    _updateGeoFeatures(ZURICH_LOCATION);
 
     _printGeoFeatures();
     emit geoFeaturesChanged();

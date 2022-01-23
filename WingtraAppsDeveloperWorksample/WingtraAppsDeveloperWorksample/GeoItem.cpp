@@ -78,13 +78,19 @@ QString GeoItem::_pointsToString() const
     return QString("[%1]").arg(pointTexts.join(", "));
 }
 
+// Qt class accepts flipped coordinates.
+QGeoCoordinate fixFlippedCoordinate(const QPointF &point)
+{
+    return QGeoCoordinate(point.y(), point.x());
+}
+
 QList<QGeoCoordinate> GeoItem::_getCoordinateList() const
 {
     auto list = QList<QGeoCoordinate>();
 
     for(const auto & point : _points)
     {
-        list.push_back(QGeoCoordinate(point.x(), point.y()));
+        list.push_back(fixFlippedCoordinate(point));
     }
 
     return list;
@@ -94,7 +100,7 @@ QGeoCoordinate GeoItem::_getCenter() const
 {
     if (_type == TYPE_POINT)
     {
-        return QGeoCoordinate(_points[0].x(), _points[0].y());
+        return QGeoCoordinate(fixFlippedCoordinate(_points[0]));
     }
     else if (_type == TYPE_LINE && _points.count() == 2)
     {

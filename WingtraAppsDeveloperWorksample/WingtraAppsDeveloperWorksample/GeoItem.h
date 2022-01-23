@@ -5,6 +5,9 @@
 
 #include <optional>
 
+// Sort by distance from item center to Zurich
+const static QGeoCoordinate ZURICH_LOCATION = QGeoCoordinate(47.3686, 8.5392);
+
 class GeoItem
 {
 public:
@@ -25,10 +28,7 @@ public:
 
     static inline bool distanceLessThan(const GeoItem &item1, const GeoItem &item2)
     {
-        // Sort by distance from item center to Zurich (8.5392, 47.3686)
-        static QGeoCoordinate zurichCoordinate = QGeoCoordinate(8.5392, 47.3686);
-
-        return item1._distanceTo(zurichCoordinate) < item2._distanceTo(zurichCoordinate);
+        return item1._distanceTo(ZURICH_LOCATION) < item2._distanceTo(ZURICH_LOCATION);
     }
 
 public:
