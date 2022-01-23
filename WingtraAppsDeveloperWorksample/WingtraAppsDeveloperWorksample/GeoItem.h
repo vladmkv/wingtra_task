@@ -52,6 +52,13 @@ public:
         return QString("%1, %2, %3, %4").arg(_name, _type, _color, _pointsToString());
     }
 
+    QString printWithDistance(const QGeoCoordinate &location) const
+    {
+        auto distance = QString::number(_distanceTo(location) / 1000);
+
+        return QString("%1, %2, %3, %4 km, %5").arg(_name, _type, _color, distance, _pointsToString());
+    }
+
 private:
     constexpr static const int COLUMNS = 4;
     constexpr static const char TYPE_POINT[] = "point";

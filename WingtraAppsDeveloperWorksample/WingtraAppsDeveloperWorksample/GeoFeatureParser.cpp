@@ -75,14 +75,14 @@ void GeoFeatureParser::_parseGeoFeatureCSVFile()
     emit geoFeaturesChanged();
 }
 
-void GeoFeatureParser::_updateGeoFeatures()
+void GeoFeatureParser::_updateGeoFeatures(const QGeoCoordinate &location)
 {
     _geoFeatures.clear();
 
     for(const auto & item : _items)
     {
         // Collect string representations
-        _geoFeatures.append(item);
+        _geoFeatures.append(location.isValid() ? item.printWithDistance(location) : item);
     }
 }
 
@@ -131,8 +131,10 @@ void GeoFeatureParser::sortByLocation()
     // e.g. "TestLine1, Line, red, 10.34 km, [(48.5677, 8.5678), (48.5678, 8.5668)]
     // in the correct order, i.e. sorted by location
 
+    auto zurichLocation = QGeoCoordinate(8.5392, 47.3686);
+
     std::sort(_items.begin(), _items.end(), GeoItem::distanceLessThan);
-    _updateGeoFeatures();
+    _updateGeoFeatures(zurichLocation);
 
     _printGeoFeatures();
     emit geoFeaturesChanged();
