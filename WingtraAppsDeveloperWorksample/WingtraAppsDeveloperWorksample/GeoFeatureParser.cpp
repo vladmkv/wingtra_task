@@ -1,4 +1,5 @@
 ﻿#include <QDebug>
+#include <QFile>
 
 #include "GeoFeatureParser.h"
 
@@ -45,6 +46,32 @@ void GeoFeatureParser::_parseGeoFeatureCSVFile()
 
     qDebug() << "Parsing file" << _filePath;
 
+    QFile file(_filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << file.errorString();
+        return;
+    }
+
+    QVector<QStringList> lineList;
+    while (!file.atEnd()) {
+        QByteArray line = file.readLine();
+
+        if (line.startsWith('#'))
+            continue;
+
+        QStringList lineChunkStrings;
+        QList<QByteArray> lineChunks = line.split(';');
+        for (const QByteArray& chunk : lineChunks) {
+            lineChunkStrings.append(chunk.trimmed());
+        }
+
+        lineList.push_back(lineChunkStrings);
+    }
+
+    _geoFeatures.clear();
+    for (auto & line : lineList) {
+        _geoFeatures.append(line.join("; "));
+    }
 
     _printGeoFeatures();
     emit geoFeaturesChanged();
