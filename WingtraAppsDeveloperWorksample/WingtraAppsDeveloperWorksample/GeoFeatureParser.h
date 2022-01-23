@@ -32,6 +32,7 @@ signals:
 private:
     void _parseGeoFeatureCSVFile();
     void _printGeoFeatures();
+    void _updateGeoFeatures();
 
     QPointF _parsePoint(const QString &string);
     QVector<QPointF> _parsePoints(const QString &geometryString);
@@ -40,6 +41,7 @@ private:
 
     QString             _filePath;
     QStringList         _geoFeatures;
+    QVector<GeoItem>    _items;
 };
 
 #endif // GeoFeatureParser_H

@@ -10,7 +10,16 @@ class GeoItem
 public:
     static std::optional<GeoItem> parseGeoItem(const QByteArray &line);
 
+    static inline bool caseInsensitiveNameLessThan(const GeoItem &item1, const GeoItem &item2)
+    {
+        return item1._name.toLower() < item2._name.toLower();
+    }
+
 public:
+    GeoItem()
+    {
+    }
+
     GeoItem(const QString &name,
         const QString &type,
         const QString &color,

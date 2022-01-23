@@ -47,7 +47,7 @@ void GeoFeatureParser::_parseGeoFeatureCSVFile()
 
     qDebug() << "Parsing file" << _filePath;
 
-    _geoFeatures.clear();
+    _items.clear();
 
     QFile file(_filePath);
     if (!file.open(QIODevice::ReadOnly)) {
@@ -65,13 +65,25 @@ void GeoFeatureParser::_parseGeoFeatureCSVFile()
 
         if (item)
         {
-            // Collect string representations
-            _geoFeatures.append(*item);
+            _items.append(*item);
         }
     }
 
+    _updateGeoFeatures();
+
     _printGeoFeatures();
     emit geoFeaturesChanged();
+}
+
+void GeoFeatureParser::_updateGeoFeatures()
+{
+    _geoFeatures.clear();
+
+    for(const auto & item : _items)
+    {
+        // Collect string representations
+        _geoFeatures.append(item);
+    }
 }
 
 void GeoFeatureParser::_printGeoFeatures()
@@ -88,6 +100,9 @@ void GeoFeatureParser::sortByName()
     // TODO 2: sort all geographic features by name in acending order
     // In the end fill _geoFeatures again with strings of the form "Name, shape type, color, [(longitude, latitude),..., (longitude, latitude)]",
     // in the correct order
+
+    std::sort(_items.begin(), _items.end(), GeoItem::caseInsensitiveNameLessThan);
+    _updateGeoFeatures();
 
     _printGeoFeatures();
     emit geoFeaturesChanged();
