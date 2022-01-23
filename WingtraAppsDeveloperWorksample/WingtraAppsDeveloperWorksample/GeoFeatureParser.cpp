@@ -1,7 +1,13 @@
 ﻿#include <QDebug>
 #include <QFile>
+#include <QColor>
+#include <QLineF>
+#include <QPolygonF>
+
+#include <optional>
 
 #include "GeoFeatureParser.h"
+#include "GeoDataModel.h"
 
 GeoFeatureParser::GeoFeatureParser(const QString& filePath, QObject *parent)
     : QObject(parent)
@@ -20,6 +26,94 @@ void GeoFeatureParser::setFilePath(const QString &filePath)
         qDebug() << "Geographic features file parser path set to" << _filePath;
         emit filePathChanged();
     }
+}
+
+QPointF GeoFeatureParser::_parsePoint(const QString &string)
+{
+    auto pointCoordinates = string.split(COORDINATE_DELIMITER);
+    if (pointCoordinates.count() != 2)
+        return QPointF();
+
+    auto x = pointCoordinates[0].trimmed().toDouble();
+    auto y = pointCoordinates[1].trimmed().toDouble();
+    return QPointF(x, y);
+}
+
+QVector<QPointF> GeoFeatureParser::_parsePoints(const QString &string)
+{
+    auto pointStrings = string.split(POINT_DELIMITER);
+    auto points = QVector<QPointF>();
+
+    for (auto &pointString : pointStrings)
+    {
+        auto point = _parsePoint(pointString);
+
+        if (!point.isNull())
+        {
+            points.push_back(point);
+        }
+    }
+
+    return points;
+}
+
+std::optional<GeoItem> GeoFeatureParser::_parseGeoItem(const QByteArray &line)
+{
+    QStringList lineChunkStrings;
+    QList<QByteArray> lineChunks = line.split(';');
+    for (const QByteArray& chunk : lineChunks) {
+        lineChunkStrings.append(chunk.trimmed());
+    }
+
+    if (lineChunkStrings.count() != COLUMNS)
+        return std::nullopt;
+
+    auto it = lineChunkStrings.cbegin();
+
+    GeoItem item;
+    item._name = *(it++);
+    item._type = *(it++);
+    item._color = *(it++);
+
+    QString geometryString = *(it);
+    if (item._type == TYPE_POINT)
+    {
+        auto point = _parsePoint(geometryString);
+
+        if (point.isNull())
+            return std::nullopt;
+
+        item._geometry = QVariant(point);
+    }
+    else if (item._type == TYPE_LINE || item._type == TYPE_POLYGON)
+    {
+        auto points = _parsePoints(geometryString);
+
+        if (item._type == TYPE_LINE)
+        {
+            if (points.count() != 2)
+            {
+                return std::nullopt;
+            }
+
+            auto line = QLineF(points[0], points[1]);
+
+            item._geometry = QVariant(line);
+        }
+        else if (item._type == TYPE_POLYGON)
+        {
+            if (points.count() < 3)
+            {
+                return std::nullopt;
+            }
+
+            auto polygon = QPolygonF(points);
+
+            item._geometry = QVariant(polygon);
+        }
+    }
+
+    return item;
 }
 
 void GeoFeatureParser::_parseGeoFeatureCSVFile()
@@ -46,6 +140,8 @@ void GeoFeatureParser::_parseGeoFeatureCSVFile()
 
     qDebug() << "Parsing file" << _filePath;
 
+    _geoFeatures.clear();
+
     QFile file(_filePath);
     if (!file.open(QIODevice::ReadOnly)) {
         qDebug() << file.errorString();
@@ -59,18 +155,12 @@ void GeoFeatureParser::_parseGeoFeatureCSVFile()
         if (line.startsWith('#'))
             continue;
 
-        QStringList lineChunkStrings;
-        QList<QByteArray> lineChunks = line.split(';');
-        for (const QByteArray& chunk : lineChunks) {
-            lineChunkStrings.append(chunk.trimmed());
+        auto item = _parseGeoItem(line);
+
+        if (item)
+        {
+            _geoFeatures.append(*item);
         }
-
-        lineList.push_back(lineChunkStrings);
-    }
-
-    _geoFeatures.clear();
-    for (auto & line : lineList) {
-        _geoFeatures.append(line.join("; "));
     }
 
     _printGeoFeatures();
