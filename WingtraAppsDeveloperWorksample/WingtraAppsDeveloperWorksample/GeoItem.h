@@ -15,6 +15,14 @@ public:
         return item1._name.toLower() < item2._name.toLower();
     }
 
+    static inline bool typeLessThan(const GeoItem &item1, const GeoItem &item2)
+    {
+        // line, polygon, then point
+        static QList<QString> _typeOrder = {TYPE_LINE, TYPE_POLYGON, TYPE_POINT};
+
+        return _typeOrder.indexOf(item1._type) < _typeOrder.indexOf(item2._type);
+    }
+
 public:
     GeoItem()
     {
@@ -45,6 +53,7 @@ private:
     constexpr static const char TYPE_POLYGON[] = "polygon";
     constexpr static const char COORDINATE_DELIMITER = ',';
     constexpr static const char POINT_DELIMITER = ' ';
+    const static QList<QString> _typeOrder;
 
 private:
     static QPointF _parsePoint(const QString &string);

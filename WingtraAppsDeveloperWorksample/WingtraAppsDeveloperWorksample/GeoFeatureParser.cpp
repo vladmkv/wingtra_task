@@ -115,6 +115,9 @@ void GeoFeatureParser::sortByType()
     // In the end fill _geoFeatures again with strings of the form "Name, shape type, color, [(longitude, latitude),..., (longitude, latitude)]",
     // in the correct order
 
+    std::sort(_items.begin(), _items.end(), GeoItem::typeLessThan);
+    _updateGeoFeatures();
+
     _printGeoFeatures();
     emit geoFeaturesChanged();
 }
