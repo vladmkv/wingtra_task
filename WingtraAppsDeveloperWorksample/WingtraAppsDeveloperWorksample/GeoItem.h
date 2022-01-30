@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QPointF>
 #include <QVector>
 #include <QGeoCoordinate>
 
